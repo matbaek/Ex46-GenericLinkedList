@@ -1,142 +1,227 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ADT
+public class MyLinkedList<T> : IEnumerable<T> where T : IComparable
 {
-    public class MyLinkedList<T>
+    private class Node
     {
-        private class Node
-        {
-            public T Data { get; set; }
-            public Node Next { get; set; }
+        public T Data { get; set; }
+        public Node Next { get; set; }
 
-            public Node(T data)
+        public Node(T data)
+        {
+            Data = data;
+        }
+    }
+
+    private Node head;
+
+    public int Count { get; private set; } = 0;
+    public T First
+    {
+        get { return ItemAt(0); }
+    }
+    public T Last
+    {
+        get { return ItemAt(Count - 1); }
+    }
+
+    /// <summary>
+    /// The Insert(T data, int index = 0) method inserts data as a node in the list
+    /// at the position indicated by index. 
+    /// The list is 0-indexed and the default value of the index parameter is 0.
+    /// If index is less than 0 or larger than Count, an InvalidOperationException is thrown.
+    /// </summary>
+    public void Insert(T data, int index = 0)
+    {
+        if (index < 0 || index > Count) throw new InvalidOperationException();
+
+        Node n = new Node(data);
+
+        if (index == 0)
+        {
+            n.Next = head;
+            head = n;
+        }
+        else
+        {
+            Node position = head;
+            for (int i = 0; i < index - 1; i++)
             {
-                Data = data;
+                position = position.Next;
             }
+            n.Next = position.Next;
+            position.Next = n;
         }
+        Count++;
+    }
 
-        private Node head;
+    /// <summary>
+    /// The Append(T data) method appends data at the end of the list.
+    /// </summary>
+    public void Append(T data)
+    {
+        Insert(data, Count);
+    }
 
-        public int Count { get; private set; }
-        public T First
+    /// <summary>
+    /// The Delete(int index = 0) method deletes the node in the list at index-position. 
+    /// The list is 0-indexed and the default value of the index parameter is 0.
+    /// If index is less than 0 or larger than or equal to Count, an InvalidOperationException is thrown.
+    /// </summary>
+    public void Delete(int index = 0)
+    {
+        if (index < 0 || index >= Count) throw new InvalidOperationException();
+        Node position = head;
+        if (index == 0)
         {
-            get { return ItemAt(0); }
+            head = head.Next;
         }
-        public T Last
+        else
         {
-            get { return ItemAt(Count - 1); }
-        }
-
-        /// <summary>
-        /// The Insert(T data, int index = 0) method inserts data as a node in the list
-        /// at the position indicated by index. 
-        /// The list is 0-indexed. 
-        /// Default value of index is 0.
-        /// If index is 0 or less, the data is inserted at the start of the list.
-        /// If index is equal to Count or higher, the data is inserted at the end of the list.
-        /// </summary>
-        public void Insert(T data, int index = 0)
-        {
-            Node n = new Node(data);
-
-            // Adjust index, if necessary
-            if (index > Count)
-                index = Count;
-
-            if (Count == 0 || index < 1)
+            Node behindPosition = position;
+            position = position.Next;
+            for (int i = 0; i < index - 1; i++)
             {
-                n.Next = head;
-                head = n;
+                behindPosition = position;
+                position = position.Next;
             }
-            else
+            behindPosition.Next = position.Next;
+        }
+        position.Next = null; // actually remove element from list
+        Count--;
+    }
+
+    /// <summary>
+    /// The ItemAt(int index) method returns the data from the list 
+    /// at the position indicated by index. 
+    /// The list is 0-indexed. 
+    /// If index is less than 0 or larger than or equal to Count, an InvalidOperationException is thrown.
+    /// </summary>
+    public T ItemAt(int index)
+    {
+        if (index < 0 || index >= Count)
+        {
+            throw new InvalidOperationException();
+        }
+
+        Node position = head;
+        for (int i = 0; i < index; i++)
+        {
+            position = position.Next;
+        }
+        return position.Data;
+    }
+
+    public void Sort()
+    {
+        int n = Count;
+
+        for (int i = 0; i < n - 1; i++)
+        {
+            Node position = head;
+            for (int j = 0; j < n - i - 1; j++)
             {
-                Node position = head;
-                for (int i = 0; i < index - 1; i++)
+                if(position.Data.CompareTo(position.Next.Data) > 0)
                 {
-                    position = position.Next;
+                    Swap(position);
                 }
-                n.Next = position.Next;
-                position.Next = n;
+                position = position.Next;
             }
+        }
+    }
 
-            Count++;
+    private void Swap(Node position)
+    {
+        T temp = position.Data;
+        position.Data = position.Next.Data;
+        position.Next.Data = temp;
+    }
+
+    /// <summary>
+    /// The ToString() method returns a string representation of the whole list by 
+    /// concatenating all the ToString()-values of each data object in the list.
+    /// </summary>
+    public override string ToString()
+    {
+        string result = "";
+
+        Node position = head;
+        while (position != null)
+        {
+            result = result + position.Data.ToString() + "\n";
+            position = position.Next;
+        }
+        return result;
+    }
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        return new MyLinkedListEnumerator(head);
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    private class MyLinkedListEnumerator : IEnumerator<T>
+    {
+        private Node _head;
+        private T _currentT;
+        private Node _currentNode;
+
+        public MyLinkedListEnumerator(Node head)
+        {
+            this._head = head;
+            _currentNode = null;
+            _currentT = default(T);
         }
 
-        /// <summary>
-        /// The Append(T data) method appends data at the end of the list.
-        /// </summary>
-        public void Append(T data)
+        public T Current
         {
-            Insert(data, Count);
+            get { return _currentT; }
         }
 
-        /// <summary>
-        /// The Delete(int index = 0) method deletes the node in the list at the position indicated by index. 
-        /// The list is 0-indexed. 
-        /// Default value of index is 0.
-        /// </summary>
-        public void Delete(int index = 0)
+        object IEnumerator.Current
         {
-            if (Count > 0)
+            get { return Current; }
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public bool MoveNext()
+        {
+            if (_head == null) // no list at all
             {
-                // Adjust index, if necessary
-                if (index > Count)
-                    index = Count;
-
-                if (index < 1)
-                    head = head.Next;
-                else
-                {
-                    Node position = head;
-                    for (int i = 0; i < index - 1; i++)
-                    {
-                        position = position.Next;
-                    }
-                    position.Next = position.Next.Next;
-                }
-
-                Count--;
+                return false;
             }
+            else if (_currentNode == null) // not started yet
+            {
+                _currentNode = _head;
+                _currentT = _currentNode.Data;
+            }
+            else if (_currentNode.Next == null) // at end of list
+            {
+                _currentNode = null;
+                _currentT = default(T);
+                return false;
+            }
+            else // get to next node
+            {
+                _currentNode = _currentNode.Next;
+                _currentT = _currentNode.Data;
+            }
+            return true;
         }
 
-        /// <summary>
-        /// The ItemAt(int index) method returns the data from the list at the position indicated by index. 
-        /// The list is 0-indexed. 
-        /// </summary>
-        public T ItemAt(int index)
+        public void Reset()
         {
-            T result = default(T);
-            if (index < Count && index >= 0)
-            {
-                Node position = head;
-                for (int i = 0; i < index; i++)
-                {
-                    position = position.Next;
-                }
-                result = position.Data;
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// The ToString() method returns a string representation of the whole list by concatenating 
-        /// all the ToString()-values of each data T in the list.
-        /// </summary>
-        public override string ToString()
-        {
-            string result = "";
-            Node pointernode = head;
-            while (pointernode != null)
-            {
-                result = result + pointernode.Data.ToString() + "\n";
-
-                pointernode = pointernode.Next;
-            }
-            return result;
+            _currentNode = null;
+            _currentT = default(T);
         }
     }
 }
