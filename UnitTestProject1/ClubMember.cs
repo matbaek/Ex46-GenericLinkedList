@@ -26,6 +26,30 @@ namespace UnitTestProject1
         {
             return $"{Id}: {FirstName} {LastName} ({Gender}, {Age} years)";
         }
+
+        public class SortClubMembersAfterLastName : IComparer<ClubMember>
+        {
+            public int Compare(ClubMember first, ClubMember second)
+            {
+                return string.Compare(first.LastName, second.LastName);
+            }
+        }
+
+        public class SortClubMembersAfterGenderAndLastName : IComparer<ClubMember>
+        {
+            public int Compare(ClubMember first, ClubMember second)
+            {
+                if(first.Gender == second.Gender)
+                {
+                    return string.Compare(first.LastName, second.LastName);
+                }
+                else
+                {
+                    return first.Gender.CompareTo(second.Gender);
+                }
+            }
+        }
+
     }
 
 }

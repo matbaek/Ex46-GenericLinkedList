@@ -123,7 +123,25 @@ public class MyLinkedList<T> : IEnumerable<T> where T : IComparable
             Node position = head;
             for (int j = 0; j < n - i - 1; j++)
             {
-                if(position.Data.CompareTo(position.Next.Data) > 0)
+                if (position.Data.CompareTo(position.Next.Data) > 0)
+                {
+                    Swap(position);
+                }
+                position = position.Next;
+            }
+        }
+    }
+
+    public void Sort(IComparer<T> ic)
+    {
+        int n = Count;
+
+        for (int i = 0; i < n - 1; i++)
+        {
+            Node position = head;
+            for (int j = 0; j < n - i - 1; j++)
+            {
+                if (ic.Compare(position.Data, position.Next.Data) > 0)
                 {
                     Swap(position);
                 }
